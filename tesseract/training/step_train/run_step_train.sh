@@ -7,13 +7,15 @@ font_properties='font_properties'
 inputtext=train_text
 resultdir=result
 
+shortname=${lang}.${fontname}.exp0
+
+mkdir ${resultdir}
+
 #mftraining inputs
 #new in 3.01
 echo ${fontname} 1 0 0 1 0 > ${resultdir}/${font_properties}
 
-shortname=${lang}.${fontname}.exp0
 
-mkdir ${resultdir}
 
 text2image --text=${inputtext} --outputbase=${resultdir}/${shortname} --font=${font} --fonts_dir=/usr/share/fonts
 
