@@ -1278,6 +1278,40 @@ void Tesseract::classify_word_and_language(int pass_n, PAGE_RES_IT* pr_it,
                                            WordData* word_data) {
   WordRecognizer recognizer = pass_n == 1 ? &Tesseract::classify_word_pass1
                                           : &Tesseract::classify_word_pass2;
+#if  OUTPUT_DEBUG_IMAGE  
+  {
+	  char outfile[1024] = "/tmp/classify_word_and_language.pxl_binary.jpg";
+	  pixWrite(outfile,this->pix_binary_,IFF_PNG);
+	  PIX* pix = pixRead(outfile);
+	  {
+		  PIX* tmp = pixConvertTo32(pix);
+		  pixDestroy(&pix);
+		  pix = tmp;
+	  }
+	  TBOX tbox = word_data->word->word->bounding_box();
+	  STRING tboxString;
+	  tbox.print_to_str(&tboxString);
+	  l_uint32 val;
+	  BOX* box;
+	  BOXA* boxa;
+	  int x = tbox.left();
+	  int y = pixGetHeight(pix) - tbox.top();
+	  int w = tbox.right() - tbox.left();
+	  int h = tbox.top() - tbox.bottom();
+	  box = boxCreate(x,y,w,h);
+	  boxa = boxaCreate(1);
+	  boxaAddBox(boxa,box,L_COPY);
+	  composeRGBPixel(255,0,0,&val);
+	  printf("%s\r\n",tboxString.string());
+	  PIX* pixDraw = pixDrawBoxa(pix,boxa,2,val);
+	  pixWrite("/tmp/classify_word_and_language.pxl_binary.withBox.jpg",
+			pixDraw, IFF_PNG);
+	  pixDestroy(&pix);
+	  boxaDestroy(&boxa); 
+	  boxDestroy(&box);
+	  pixDestroy(&pixDraw);
+  }
+#endif
   // Best result so far.
   PointerVector<WERD_RES> best_words;
   // Points to the best result. May be word or in lang_words.
