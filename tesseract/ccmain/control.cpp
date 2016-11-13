@@ -47,6 +47,10 @@
 #include "sorthelper.h"
 #include "tesseractclass.h"
 
+#if OUTPUT_DEBUG_IMAGE
+#include "FreeImage.h"
+#endif
+
 #define MIN_FONT_ROW_COUNT  8
 #define MAX_XHEIGHT_DIFF  3
 
@@ -1280,36 +1284,41 @@ void Tesseract::classify_word_and_language(int pass_n, PAGE_RES_IT* pr_it,
                                           : &Tesseract::classify_word_pass2;
 #if  OUTPUT_DEBUG_IMAGE  
   {
-	  char outfile[1024] = "/tmp/classify_word_and_language.pxl_binary.jpg";
-	  pixWrite(outfile,this->pix_binary_,IFF_PNG);
-	  PIX* pix = pixRead(outfile);
+	  FIBITMAP* img;
+	  char outfile[1024] = "/mnt/win/gdb/classify_word_and_language.pxl_binary.jpg";
+	  pixWrite(outfile,this->pix_binary_,IFF_JFIF_JPEG);
+	  img = FreeImage_Load(FIF_JPEG,outfile);
 	  {
-		  PIX* tmp = pixConvertTo32(pix);
-		  pixDestroy(&pix);
-		  pix = tmp;
+		  if(FreeImage_GetBPP(img) != 24)
+		  {
+			  FIBITMAP* tmp = FreeImage_ConvertTo24Bits(img);
+			  FreeImage_Unload(img);
+			  img = tmp;
+		  }
 	  }
+	  int width = FreeImage_GetWidth(img);
+	  int height = FreeImage_GetHeight(img);
+	  int pitch = FreeImage_GetPitch(img);
 	  TBOX tbox = word_data->word->word->bounding_box();
-	  STRING tboxString;
-	  tbox.print_to_str(&tboxString);
-	  l_uint32 val;
-	  BOX* box;
-	  BOXA* boxa;
 	  int x = tbox.left();
-	  int y = pixGetHeight(pix) - tbox.top();
+	  int y = tbox.bottom();
+	 // int y = height - tbox.top();
 	  int w = tbox.right() - tbox.left();
 	  int h = tbox.top() - tbox.bottom();
-	  box = boxCreate(x,y,w,h);
-	  boxa = boxaCreate(1);
-	  boxaAddBox(boxa,box,L_COPY);
-	  composeRGBPixel(255,0,0,&val);
-	  printf("%s\r\n",tboxString.string());
-	  PIX* pixDraw = pixDrawBoxa(pix,boxa,2,val);
-	  pixWrite("/tmp/classify_word_and_language.pxl_binary.withBox.jpg",
-			pixDraw, IFF_PNG);
-	  pixDestroy(&pix);
-	  boxaDestroy(&boxa); 
-	  boxDestroy(&box);
-	  pixDestroy(&pixDraw);
+	  printf("%d %d %d %d\r\n",x,y,w,h);
+	  int row,col;
+	  for( row = 0; row < h; row++)
+	  {
+		  unsigned char* bytes = FreeImage_GetBits(img) + (row + y) * pitch + x*3;
+		  for(col = 0; col < w; col++)
+		  {
+			  bytes[col*3] = 128 + bytes[col*3]/2;
+			  bytes[col*3 + 1] = 0 + bytes[col*3 + 1]/2;
+			  bytes[col*3 + 2] = 0 + bytes[col*3 + 2]/2;
+		  }
+	  }
+	  FreeImage_Save(FIF_JPEG, img, outfile);
+	  FreeImage_Unload(img);
   }
 #endif
   // Best result so far.

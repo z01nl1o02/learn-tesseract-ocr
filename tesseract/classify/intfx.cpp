@@ -33,6 +33,11 @@
 #include "normalis.h"
 #include "statistc.h"
 #include "trainingsample.h"
+#include "config_auto.h"
+
+#ifdef OUTPUT_DEBUG_IMAGE
+#include "FreeImage.h"
+#endif
 
 using tesseract::TrainingSample;
 
@@ -104,6 +109,47 @@ TrainingSample* BlobToTrainingSample(
     blob.denorm().DenormTransform(NULL, botright, &original_botright);
     sample->set_bounding_box(TBOX(original_topleft.x, original_botright.y,
                                   original_botright.x, original_topleft.y));
+
+#if OUTPUT_DEBUG_IMAGE
+  {
+	  char output[512] = "/mnt/win/gdb/BlobToTrainingSample_blob.jpg";
+	  PIX* pix = blob.denorm().pix();
+	  pixWrite(output,pix,IFF_JFIF_JPEG);
+	  TBOX box = sample->bounding_box();
+	  int x = box.left();
+	  int y = box.bottom();
+	  int w = box.right() - box.left();
+	  int h = box.top() - box.bottom();
+	  printf("%d %d %d %d\r\n",x,y,w,h);
+	  int row,col;
+	  FIBITMAP* img = FreeImage_Load(FIF_JPEG, output);
+	  if(FreeImage_GetBPP(img) != 24)
+	  {
+		  FIBITMAP* tmp = FreeImage_ConvertTo24Bits(img);
+		  FreeImage_Unload(img);
+		  img = tmp;
+	  }
+	  int pitch = FreeImage_GetPitch(img);
+	  unsigned char* lines = FreeImage_GetBits(img) + y * pitch + x * 3;
+	  for( row = 0; row < h; row++)
+	  {
+		  unsigned char* bytes = lines;
+		  for(col = 0; col < w; col++, bytes+=3)
+		  {
+			  bytes[0] = 128  + bytes[0]/2;
+			  bytes[1] = 0  + bytes[1]/2;
+			  bytes[2] = 0  + bytes[2]/2;
+		  }
+		  lines += pitch;
+	  }
+	  FreeImage_Save(FIF_JPEG, img, output);
+	  FreeImage_Unload(img);
+  }
+#endif
+
+
+
+
   }
   return sample;
 }

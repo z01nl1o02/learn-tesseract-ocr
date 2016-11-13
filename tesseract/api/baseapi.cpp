@@ -78,6 +78,10 @@
 #include "strngs.h"
 #include "openclwrapper.h"
 
+#if OUTPUT_DEBUG_IMAGE
+#include "FreeImage.h"
+#endif
+
 BOOL_VAR(stream_filelist, FALSE, "Stream a filelist from stdin");
 
 namespace tesseract {
@@ -130,9 +134,19 @@ TessBaseAPI::TessBaseAPI()
     truth_cb_(NULL),
     rect_left_(0), rect_top_(0), rect_width_(0), rect_height_(0),
     image_width_(0), image_height_(0) {
+
+#if OUTPUT_DEBUG_IMAGE
+    FreeImage_Initialise();
+#endif
+
 }
 
 TessBaseAPI::~TessBaseAPI() {
+#if OUTPUT_DEBUG_IMAGE
+    FreeImage_DeInitialise();
+#endif
+
+
   End();
 }
 

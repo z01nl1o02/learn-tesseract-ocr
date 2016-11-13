@@ -18,7 +18,6 @@
 
 /* Disable graphics */
 /* #undef GRAPHICS_DISABLED */
-#undef GRAPHICS_DISABLED 
 
 /* Define to 1 if you have the <CL/cl.h> header file. */
 /* #undef HAVE_CL_CL_H */

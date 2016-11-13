@@ -38,6 +38,7 @@
 #include <tiffio.h>
 #include <windows.h>
 
+
 static void Win32WarningHandler(const char* module, const char* fmt,
                                 va_list ap) {
     if (module != NULL) {
@@ -369,6 +370,8 @@ int main(int argc, char **argv) {
   int arg_i = 1;
   tesseract::PageSegMode pagesegmode = tesseract::PSM_AUTO;
 
+
+
 #if defined(HAVE_TIFFIO_H) && defined(_WIN32)
   /* Show libtiff warnings on console (not in GUI). */
   TIFFSetWarningHandler(Win32WarningHandler);
@@ -474,5 +477,9 @@ int main(int argc, char **argv) {
   }
 
   PERF_COUNT_END
+
+
+
+
   return 0;                      // Normal exit
 }
