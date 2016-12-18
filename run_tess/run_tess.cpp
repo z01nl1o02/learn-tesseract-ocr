@@ -5,7 +5,7 @@ int main()
 {
 	char *outText;
 	tesseract::TessBaseAPI* api = new tesseract::TessBaseAPI();
-	if(api->Init(NULL,"eng"))
+	if(api->Init(NULL,"eng")) // /usr/local/share
 	{
 		fprintf(stderr,"could not initialize tesseract.\n");
 		exit(1);
